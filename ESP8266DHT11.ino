@@ -5,8 +5,8 @@
 #define DHTTYPE DHT11
 #define DHTPIN  13
 
-const char* ssid     = "shmoo3";
-const char* password = "s1lkw0rm";
+const char* ssid     = "IoT";
+const char* password = "ESP8266NET";
 
 // replace with your channel's thingspeak API key
 String apiKey = "KIH7BGQ47EKFDK1T";
