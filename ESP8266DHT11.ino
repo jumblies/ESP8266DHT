@@ -47,7 +47,7 @@ void setup()
   delay(10);
 
   Serial.println("Temperature and Humidity test!");//print on Serial monitor
-  Serial.println("T(C) \tH(%)");                   //print on Serial monitor
+  Serial.println("T(F) \tH(%)\tDewPt");                   //print on Serial monitor
 
 }
 
@@ -60,7 +60,17 @@ void loop() {
   float h = dht.readHumidity();    // reading Humidity
   float tempC = dht.readTemperature(); // read Temperature as Celsius (the default)
   float temp = (32 + (9 * tempC) / 5); //approximately 2 degrees error correction for conversion and sensor inaccuracy
-  Serial.println(temp, h);
+
+  float dP = (dewPointFast(tempC, h));
+  float cDP = ((dP * 9) / 5) + 32;
+
+
+  Serial.print(temp);
+  Serial.print("\t");
+  Serial.print(h);
+  Serial.print("\t");
+  Serial.println(cDP);
+
   delay(1000);
 
   if (client.connect(server, 80)) { // "184.106.153.149" or api.thingspeak.com
@@ -69,6 +79,8 @@ void loop() {
     postStr += String(temp);
     postStr += "&field2=";
     postStr += String(h);
+    postStr += "&field3=";
+    postStr += String(cDP);
     postStr += "\r\n\r\n";
 
     client.print("POST /update HTTP/1.1\n");
@@ -90,7 +102,21 @@ void loop() {
 
   Serial.println("Waiting...");
   // thingspeak needs minimum 15 sec delay between updates
-  //  currently set to 60 seconds
-  delay(60000);
+  //  currently set to 20 seconds
+  delay(20000);
+}
+
+
+// DEW POINT CALCULATION********************
+// delta max = 0.6544 wrt dewPoint()
+// 6.9 x faster than dewPoint()
+// reference: http://en.wikipedia.org/wiki/Dew_point
+double dewPointFast(double celsius, double humidity)
+{
+  double a = 17.271;
+  double b = 237.7;
+  double temp = (a * celsius) / (b + celsius) + log(humidity * 0.01);
+  double Td = (b * temp) / (a - temp);
+  return Td;
 }
 
