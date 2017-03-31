@@ -1,4 +1,3 @@
-
 #include <DHT.h>
 #include <ESP8266WiFi.h>
 
@@ -12,9 +11,11 @@ const char* password = "ESP8266NET";
 String apiKey = "KIH7BGQ47EKFDK1T";
 const char* server = "api.thingspeak.com";
 
+IPAddress ip (10, 10, 10, 220);
+IPAddress gateway(10, 10, 10, 1);
+IPAddress subnet(255, 255, 255, 0);
+
 WiFiClient client;
-
-
 
 DHT dht(DHTPIN, DHTTYPE, 11); // 11 works fine for ESP8266
 float humidity, temp_f;  // Values read from sensor
@@ -29,14 +30,16 @@ void setup()
 
 
 
+  // WIFI CONFIG
+  WiFi.softAPdisconnect(true);//GET RID OF AP BROADCAST
+  WiFi.mode(WIFI_STA);
   WiFi.begin(ssid, password);
-
+  WiFi.config(ip, gateway, subnet); //options (ip, dns, gateway, subnet) Needed all 3 parameters to compile
   Serial.println();
   Serial.println();
   Serial.print("Connecting to ");
   Serial.println(ssid);
 
-  WiFi.begin(ssid, password);
 
   while (WiFi.status() != WL_CONNECTED) {
     delay(500);
@@ -46,8 +49,8 @@ void setup()
   Serial.println("WiFi connected");
   delay(10);
 
-  Serial.println("Temperature and Humidity test!");//print on Serial monitor
-  Serial.println("T(F) \tH(%)\tDewPt");                   //print on Serial monitor
+  //  Serial.println("Temperature and Humidity test!");       //print on Serial monitor
+  //  Serial.println("T(F) \tH(%)\tDewPt");                   //print on Serial monitor
 
 }
 
@@ -64,7 +67,7 @@ void loop() {
   float dP = (dewPointFast(tempC, h));
   float cDP = ((dP * 9) / 5) + 32;
 
-
+  Serial.println("Temp\tRelHum\tcDewPt");
   Serial.print(temp);
   Serial.print("\t");
   Serial.print(h);
@@ -93,17 +96,17 @@ void loop() {
     client.print("\n\n");
     client.print(postStr);
 
-    Serial.print("Temperature: ");
-    Serial.print(temp);
-    Serial.println(" F");
+    //    Serial.print("Temperature: ");
+    //    Serial.print(temp);
+    //    Serial.println(" F");
     Serial.println("% send to Thingspeak");
   }
   client.stop();
 
   Serial.println("Waiting...");
   // thingspeak needs minimum 15 sec delay between updates
-  //  currently set to 20 seconds
-  delay(20000);
+  //  currently set to 60 seconds
+  delay(60000);
 }
 
 
